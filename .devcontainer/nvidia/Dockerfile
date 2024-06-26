@@ -12,6 +12,7 @@ RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
+    && sudo apt-get install x11-apps tmux net-tools -y \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -24,3 +25,7 @@ RUN python3 -m pip install -r requirements-dev.txt \
 # Disable the setuputils installation warning
 # This prevents us from needing to pin the setuputils version (which doesn't always work)
 ENV PYTHONWARNINGS="ignore"
+
+# Remove local workspace as this will be mounted from the host for deving
+WORKDIR /home/$USERNAME
+RUN sudo rm -rf $USER_WORKSPACE

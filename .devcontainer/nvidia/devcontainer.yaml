@@ -1,0 +1,29 @@
+services:
+  blue:
+    build:
+      context: ~/workspace/ros2_blue/src/blue
+      dockerfile: ./.devcontainer/nvidia/Dockerfile
+    image: ros2:blue
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ~/.tmux.conf:/home/blue/.tmux.conf
+      - ~/workspace/ros2_blue:/home/blue/ws_blue
+      - ~/.docker_blue_bash_history:/home/blue/.bash_history
+    devices:
+      - "/dev/input/js0:/dev/input/js0"
+    network_mode: "host"
+    stdin_open: true
+    tty: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt: 
+      - seccomp=unconfined
+      - apparmor=unconfined
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY=unix${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - LIBGL_ALWAYS_SOFTWARE=1
+
