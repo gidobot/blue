@@ -13,6 +13,7 @@ RUN sudo apt-get -q update \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
     && sudo apt-get install x11-apps tmux net-tools -y \
+    && sudo apt-get install joystick \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*

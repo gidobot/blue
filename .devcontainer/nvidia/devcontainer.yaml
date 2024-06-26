@@ -1,16 +1,17 @@
 services:
   blue:
     build:
-      context: ~/workspace/ros2_blue/src/blue
+      context: ~/workspace/ros2-blue/src/blue
       dockerfile: ./.devcontainer/nvidia/Dockerfile
     image: ros2:blue
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ~/.tmux.conf:/home/blue/.tmux.conf
-      - ~/workspace/ros2_blue:/home/blue/ws_blue
+      - ~/workspace/ros2-blue:/home/blue/ws_blue
       - ~/.docker_blue_bash_history:/home/blue/.bash_history
     devices:
-      - "/dev/input/js0:/dev/input/js0"
+      # - "/dev/input/js0:/dev/input/js0"
+      - "/dev/bus/usb/001/002:/dev/input/js0" #wsl2 device number from dmesg
     network_mode: "host"
     stdin_open: true
     tty: true
