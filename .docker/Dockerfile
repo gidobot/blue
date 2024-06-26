@@ -18,6 +18,9 @@ RUN apt-get -q update \
     clang-tools \
     python3-pip \
     python3-dev \
+    lsb-release \
+    wget \
+    gnupg \
     software-properties-common \
     && apt-get autoremove -y \
     && apt-get clean -y \
@@ -49,21 +52,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Switch to the non-root user for the rest of the installation.
-# We do this to avoid any conflicts with user permissions
+# Switch to the non-root user for the rest of the installation
 USER $USERNAME
 ENV USER=$USERNAME
-
-# Install some core apt packages
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
-    lsb-release \
-    wget \
-    gnupg \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
 
 # Install MAVROS dependencies
 WORKDIR /home/$USERNAME
@@ -71,7 +62,6 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/in
     && chmod +x install_geographiclib_datasets.sh \
     && sudo ./install_geographiclib_datasets.sh
 
-# Copy the project over to the image
 ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
@@ -91,11 +81,13 @@ RUN sudo apt-get -q update \
     gstreamer1.0-plugins-ugly \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
+    libgstreamer1.0-dev \
+    gstreamer1.0-gl \
+    libgstreamer-plugins-base1.0-dev \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
-# Install all ROS dependencies
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && rosdep update \
@@ -104,9 +96,8 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
-# Setup the environment variables
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashr
+    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
 
 FROM robot as desktop
 
@@ -116,7 +107,7 @@ ENV GZ_VERSION=garden
 # Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
 RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    && sudo apt-get update \
+    && sudo apt-get -q update \
     && sudo apt-get -y --quiet --no-install-recommends install \
     gz-garden \
     && sudo apt-get autoremove -y \
@@ -130,6 +121,9 @@ RUN sudo apt-get -q update \
     python3-wxgtk4.0 \
     rapidjson-dev \
     xterm \
+    libgz-sim7-dev \
+    rapidjson-dev \
+    libopencv-dev \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -163,7 +157,7 @@ RUN [ "/bin/bash" , "-c" , " \
     && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     && make -j4" ]
 
-# Install Gazebo
+# Install ros_gz and other project dependencies
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
